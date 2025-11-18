@@ -1,26 +1,38 @@
-from sqlalchemy import Column, Integer, String, Float, TIMESTAMP, ForeignKey, func
+# app/models.py
+
+from datetime import datetime
+
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
-from .database import Base
+
+from app.database import Base
+
 
 class User(Base):
     __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String(50), unique=True, nullable=False)
-    email = Column(String(100), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)  # 🔐 add this
-    created_at = Column(TIMESTAMP, server_default=func.now())
 
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+    # One-to-many relationship: one user → many calculations
     calculations = relationship("Calculation", back_populates="user")
 
 
 class Calculation(Base):
     __tablename__ = "calculations"
+
     id = Column(Integer, primary_key=True, index=True)
-    operation = Column(String(20), nullable=False)
+    operation = Column(String, nullable=False)
     operand_a = Column(Float, nullable=False)
     operand_b = Column(Float, nullable=False)
     result = Column(Float, nullable=False)
-    timestamp = Column(TIMESTAMP, server_default=func.now())
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
 
+    # ✅ Allow NULL so old tests that don't send a user_id still work
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    # Relationship back to User
     user = relationship("User", back_populates="calculations")

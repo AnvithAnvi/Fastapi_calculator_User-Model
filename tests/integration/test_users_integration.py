@@ -11,6 +11,9 @@ def test_create_user_success():
         "password": "password123",
     }
     res = client.post("/users/", json=payload)
+
+    #print("DEBUG create_user_success:", res.status_code, res.json())
+
     assert res.status_code == 201
     data = res.json()
 
